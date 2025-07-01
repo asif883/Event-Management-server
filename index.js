@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
+const jwt = require('jsonwebtoken');
 const app = express()
 const port = process.env.PORT || 5000
 
@@ -13,6 +14,24 @@ app.use(cors({
     ]
 }))
 app.use(express.json())
+
+// token verify
+const verifyJwt =(req, res , next) =>{
+    const authorization = req.headers.authorization
+    if( !authorization ){
+        return res.send({ message: "No token found"})
+    }
+    const token = authorization.split(' ')[1];
+
+    jwt.verify(token , process.env.ACCESS_TOKEN, (err, decoded) =>{
+        if(err){
+        return res.send({message : "Invalid token"})
+        }
+        req.decoded= decoded;
+        next()
+    })
+  }
+
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.osztyuf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -30,7 +49,7 @@ const eventsCollection = client.db("e-manager").collection("events")
 
 const connectDB = async()=>{
     try {
-        // await client.connect()
+        await client.connect()
         // console.log("Db Connected");
 
 
@@ -70,7 +89,7 @@ const connectDB = async()=>{
         })
 
         // get all and filtered events
-        app.get('/events', async (req, res) => {
+        app.get('/events', verifyJwt, async (req, res) => {
             const { title, filterType, startDate, endDate } = req.query;
 
             const query = {};
@@ -184,7 +203,7 @@ const connectDB = async()=>{
         })
 
         // get event by email
-        app.get('/event/:email', async( req, res )=> {
+        app.get('/event/:email', verifyJwt, async( req, res )=> {
             const email = req.params.email
             const query = {email : email}
             const result = await eventsCollection.find(query).toArray()
@@ -215,6 +234,13 @@ const connectDB = async()=>{
            res.send(result)
         })
 
+        // authentication
+        app.post('/authentication', async ( req , res )=>{
+        const userEmail = req.body;
+        const token = jwt.sign(userEmail , process.env.ACCESS_TOKEN, 
+        { expiresIn: '1d'})
+        res.send({token})
+        })
 
         
     } catch (error) {
