@@ -29,8 +29,8 @@ const eventsCollection = client.db("e-manager").collection("events")
 
 const connectDB = async()=>{
     try {
-        await client.connect()
-        console.log("Db Connected");
+        // await client.connect()
+        // console.log("Db Connected");
 
 
         // add user to db
