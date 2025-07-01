@@ -9,6 +9,7 @@ const port = process.env.PORT || 5000
 app.use(cors({
     origin:[
         "http://localhost:5173",
+        "https://event-management-umber-ten.vercel.app"
     ]
 }))
 app.use(express.json())
