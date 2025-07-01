@@ -49,7 +49,7 @@ const eventsCollection = client.db("e-manager").collection("events")
 
 const connectDB = async()=>{
     try {
-        await client.connect()
+        // await client.connect()
         // console.log("Db Connected");
 
 
